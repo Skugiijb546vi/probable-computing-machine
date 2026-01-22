@@ -9,12 +9,14 @@ on:
 jobs:
   upload:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Download Video
-        run: wget -O movie.mp4 "${{ github.event.inputs.video_url }}"
+        run: |
+          curl -L -o movie.mp4 "${{ github.event.inputs.video_url }}"
         
       - name: Create Release
-        id: create_release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: movie-${{ github.run_number }}
