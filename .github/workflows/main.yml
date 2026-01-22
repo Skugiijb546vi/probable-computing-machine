@@ -20,16 +20,15 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg
 
-      - name: Download and Optimize
+      - name: Process Video
         run: |
-          wget --user-agent="Mozilla/5.0" "${{ github.event.inputs.video_url }}" -O movie.mp4
-          ffmpeg -i movie.mp4 -c copy -movflags +faststart optimized.mp4
-          mv optimized.mp4 movie.mp4
+          wget --user-agent="Mozilla/5.0" "${{ github.event.inputs.video_url }}" -O input.mp4
+          ffmpeg -i input.mp4 -c copy -movflags +faststart movie.mp4
 
-      - name: Commit and Push
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add movie.mp4
-          git commit -m "Add optimized video"
-          git push origin main
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: vid-${{ github.run_number }}
+          files: movie.mp4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
