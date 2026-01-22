@@ -1,0 +1,23 @@
+name: Remote Upload to Release
+on:
+  workflow_dispatch:
+    inputs:
+      video_url:
+        description: 'Direct Link to Video'
+        required: true
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Video
+        run: wget -O movie.mp4 "${{ github.event.inputs.video_url }}"
+        
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: movie-${{ github.run_number }}
+          files: movie.mp4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
