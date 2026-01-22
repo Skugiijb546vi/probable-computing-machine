@@ -14,8 +14,13 @@ jobs:
     steps:
       - name: Download Video
         run: |
-          wget --user-agent="Mozilla/5.0" --continue --output-document=movie.mp4 "${{ github.event.inputs.video_url }}"
+          wget --user-agent="Mozilla/5.0" --continue --output-document=input_movie.mp4 "${{ github.event.inputs.video_url }}"
         
+      - name: Optimize for Streaming
+        run: |
+          # ئەم فەرمانە زانیارییەکان دەهێنێتە سەرەتای فایلەکە بێ ئەوەی کوالێتییەکەی تێک بدات
+          ffmpeg -i input_movie.mp4 -c copy -map 0 -movflags +faststart movie.mp4
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
