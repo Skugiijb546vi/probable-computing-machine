@@ -20,18 +20,15 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg
 
-      - name: Download Video
+      - name: Download and Optimize
         run: |
-          wget --user-agent="Mozilla/5.0" --continue --output-document=input_movie.mp4 "${{ github.event.inputs.video_url }}"
-        
-      - name: Optimize for Streaming
-        run: |
-          ffmpeg -i input_movie.mp4 -c copy -map 0 -movflags +faststart movie.mp4
+          wget --user-agent="Mozilla/5.0" "${{ github.event.inputs.video_url }}" -O input.mp4
+          ffmpeg -i input.mp4 -c copy -movflags +faststart movie.mp4
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
         with:
-          tag_name: movie-${{ github.run_number }}
-          files: movie.mp4
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          publish_branch: gh-pages
+          keep_files: true
