@@ -11,9 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pages: write
-      id-token: write
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -25,9 +22,10 @@ jobs:
 
       - name: Download and Optimize
         run: |
-          wget --user-agent="Mozilla/5.0" "${{ github.event.inputs.video_url }}" -O movie.mp4
-          ffmpeg -i movie.mp4 -c copy -movflags +faststart optimized.mp4
-          mv optimized.mp4 movie.mp4
+          wget --user-agent="Mozilla/5.0" "${{ github.event.inputs.video_url }}" -O input.mp4
+          ffmpeg -i input.mp4 -c copy -movflags +faststart movie.mp4
+          # سڕینەوەی فایلی ئەسڵی بۆ چۆڵکردنی جێگا
+          rm input.mp4
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
@@ -35,5 +33,5 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: .
           publish_branch: gh-pages
-          user_name: 'github-actions[bot]'
-          user_email: 'github-actions[bot]@users.noreply.github.com'
+          # ئەمە کێشەی Exit code 1 چارەسەر دەکات
+          force_orphan: true 
