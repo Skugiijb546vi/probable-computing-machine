@@ -1,4 +1,4 @@
-name: Remote Upload to Release
+name: Video Uploader
 on:
   workflow_dispatch:
     inputs:
