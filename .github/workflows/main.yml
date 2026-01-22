@@ -14,13 +14,12 @@ jobs:
     steps:
       - name: Download Video
         run: |
-          wget -O movie.mp4 "${{ github.event.inputs.video_url }}" || curl -L -o movie.mp4 "${{ github.event.inputs.video_url }}"
+          wget --user-agent="Mozilla/5.0" --continue --output-document=movie.mp4 "${{ github.event.inputs.video_url }}"
         
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: movie-${{ github.run_number }}
-          name: Release ${{ github.run_number }}
           files: movie.mp4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
