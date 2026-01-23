@@ -1,9 +1,9 @@
-name: Drive to Stream Link
+name: Seedr to Permanent Link
 on:
   workflow_dispatch:
     inputs:
-      video_url:
-        description: 'Google Drive Direct Link'
+      seedr_link:
+        description: 'لینکی دایرێکتی سێدر لێرە دابنێ'
         required: true
 
 jobs:
@@ -12,18 +12,15 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Download from Drive
+      - name: Download from Seedr
         run: |
-          # ئەم فەرمانە بەهێزە لاپەڕەی ئاگادارکردنەوەی گۆگڵ دەبڕێت و فیلمەکە دادەگرێت
-          wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1kPbEfrvqNuc5D6qwgCgJydyAZsW8NpiI' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1kPbEfrvqNuc5D6qwgCgJydyAZsW8NpiI" -O movie.mp4 && rm -rf /tmp/cookies.txt
+          # گیتھەب لێرەدا فایلەکە بە خێراییەکی خەیاڵی لە سێدرەوە ڕادەکێشێت
+          curl -L "${{ github.event.inputs.seedr_link }}" -o movie.mp4
 
-      - name: Upload to Release
+      - name: Create Permanent Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: "stream-v${{ github.run_number }}"
+          tag_name: "v-direct-${{ github.run_number }}"
           files: movie.mp4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
