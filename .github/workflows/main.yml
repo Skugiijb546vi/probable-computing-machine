@@ -20,10 +20,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg
 
-      - name: Process Video
+      - name: Process and Convert Video
         run: |
+          # داگرتنی ڤیدیۆکە
           wget --user-agent="Mozilla/5.0" "${{ github.event.inputs.video_url }}" -O input.mp4
-          ffmpeg -i input.mp4 -c copy -movflags +faststart movie.mp4
+          
+          # کۆنڤێرتکردنی ڤیدیۆکە بۆ H.264 و دەنگ بۆ AAC بۆ ئەوەی لە هەموو شوێنێک لێبدات
+          # ئەم پرۆسەیە کەمێک کاتی دەوێت چونکە ڤیدیۆکە دووبارە دروست دەکاتەوە
+          ffmpeg -i input.mp4 -vcodec libx264 -acodec aac -strict experimental -movflags +faststart movie.mp4
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v1
