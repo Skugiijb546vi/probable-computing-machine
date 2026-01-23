@@ -1,26 +1,29 @@
-name: Seedr to Permanent Link
+name: Torrent to Direct Link
 on:
   workflow_dispatch:
     inputs:
-      seedr_link:
-        description: 'لینکی دایرێکتی سێدر لێرە دابنێ'
+      magnet_link:
+        description: 'Magnet Link (لێرە دایبنێ)'
         required: true
 
 jobs:
-  transfer:
+  download:
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - name: Download from Seedr
-        run: |
-          # گیتھەب لێرەدا فایلەکە بە خێراییەکی خەیاڵی لە سێدرەوە ڕادەکێشێت
-          curl -L "${{ github.event.inputs.seedr_link }}" -o movie.mp4
+      - name: Install Torrent Client
+        run: sudo apt-get install aria2 -y
 
-      - name: Create Permanent Release
+      - name: Download Movie
+        run: |
+          # گیتھەب خۆی فیلمەکە دادەگرێت بەبێ پێویستی بە سێدر
+          aria2c --seed-time=0 "${{ github.event.inputs.magnet_link }}" -o movie.mp4
+
+      - name: Upload to Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: "v-direct-${{ github.run_number }}"
+          tag_name: "movie-v${{ github.run_number }}"
           files: movie.mp4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
