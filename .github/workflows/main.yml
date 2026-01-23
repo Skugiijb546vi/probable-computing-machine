@@ -1,4 +1,4 @@
-name: Video Uploader
+name: Video Direct Linker
 on:
   workflow_dispatch:
     inputs:
@@ -7,32 +7,22 @@ on:
         required: true
 
 jobs:
-  upload:
+  deploy:
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - name: Checkout Code
+      - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Install FFmpeg
+      - name: Download Video
         run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg
+          wget --user-agent="Mozilla/5.0" "${{ github.event.inputs.video_url }}" -O movie.mp4
 
-      - name: Process and Convert Video
-        run: |
-          # داگرتنی ڤیدیۆکە
-          wget --user-agent="Mozilla/5.0" "${{ github.event.inputs.video_url }}" -O input.mp4
-          
-          # کۆنڤێرتکردنی ڤیدیۆکە بۆ H.264 و دەنگ بۆ AAC بۆ ئەوەی لە هەموو شوێنێک لێبدات
-          # ئەم پرۆسەیە کەمێک کاتی دەوێت چونکە ڤیدیۆکە دووبارە دروست دەکاتەوە
-          ffmpeg -i input.mp4 -vcodec libx264 -acodec aac -strict experimental -movflags +faststart movie.mp4
-
-      - name: Upload to Release
-        uses: softprops/action-gh-release@v1
+      - name: Push to Pages Branch
+        uses: peaceiris/actions-gh-pages@v3
         with:
-          tag_name: vid-${{ github.run_number }}
-          files: movie.mp4
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          publish_branch: gh-pages
+          force_orphan: true
