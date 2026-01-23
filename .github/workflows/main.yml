@@ -19,10 +19,10 @@ jobs:
         run: |
           wget --user-agent="Mozilla/5.0" "${{ github.event.inputs.video_url }}" -O movie.mp4
 
-      - name: Push to Pages Branch
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: .
-          publish_branch: gh-pages
-          force_orphan: true
+      - name: Manual Push
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add movie.mp4
+          git commit -m "Update Video"
+          git push --force origin main
