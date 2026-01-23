@@ -1,30 +1,29 @@
-name: Video Uploader (Large Files)
+name: Drive to Stream Link
 on:
   workflow_dispatch:
     inputs:
       video_url:
-        description: 'Direct Link from Seedr'
+        description: 'Google Drive Direct Link'
         required: true
 
 jobs:
-  upload:
+  transfer:
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - name: Checkout Code
+      - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Download Video
+      - name: Download from Drive
         run: |
-          # لێرەدا فیلمە گەورەکە دادەگرین
-          wget --user-agent="Mozilla/5.0" "${{ github.event.inputs.video_url }}" -O movie.mp4
+          # ئەم فەرمانە بەهێزە لاپەڕەی ئاگادارکردنەوەی گۆگڵ دەبڕێت و فیلمەکە دادەگرێت
+          wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1kPbEfrvqNuc5D6qwgCgJydyAZsW8NpiI' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1kPbEfrvqNuc5D6qwgCgJydyAZsW8NpiI" -O movie.mp4 && rm -rf /tmp/cookies.txt
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: "v${{ github.run_number }}"
+          tag_name: "stream-v${{ github.run_number }}"
           files: movie.mp4
-          body: "لینکی فایلی ٢ گێگابایتی"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
