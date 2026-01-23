@@ -1,29 +1,84 @@
-name: Torrent to Direct Link
+name: 🔥 Universal Video Stream Converter
 on:
   workflow_dispatch:
     inputs:
-      magnet_link:
-        description: 'Magnet Link (لێرە دایبنێ)'
+      video_url:
+        description: 'Direct video URL or supported streaming link'
         required: true
+      output_filename:
+        description: 'Output filename (without .mp4)'
+        required: false
+        default: 'stream_ready_video'
+      quality_preset:
+        description: 'Encoding speed/quality tradeoff'
+        required: false
+        default: 'veryfast'
+        type: choice
+        options:
+          - ultrafast
+          - superfast
+          - veryfast
+          - faster
+          - fast
+          - medium
 
 jobs:
-  download:
+  convert-to-universal-stream:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    timeout-minutes: 120
+    
     steps:
-      - name: Install Torrent Client
-        run: sudo apt-get install aria2 -y
-
-      - name: Download Movie
+      - name: 🏗️ Setup Environment
         run: |
-          # گیتھەب خۆی فیلمەکە دادەگرێت بەبێ پێویستی بە سێدر
-          aria2c --seed-time=0 "${{ github.event.inputs.magnet_link }}" -o movie.mp4
+          sudo apt-get update
+          sudo apt-get install -y aria2 ffmpeg curl pv
+          
+      - name: ⬇️ Download Source Video
+        id: download
+        run: |
+          URL="${{ github.event.inputs.video_url }}"
+          FILENAME="source_video"
+          aria2c --max-connection-per-server=16 --split=16 --continue=true --user-agent="Mozilla/5.0" -o "$FILENAME" "$URL"
+          if [ -f "$FILENAME" ] && [ -s "$FILENAME" ]; then
+            echo "downloaded=true" >> $GITHUB_OUTPUT
+            echo "file_path=$FILENAME" >> $GITHUB_OUTPUT
+          else
+            exit 1
+          fi
 
-      - name: Upload to Release
+      - name: 🎬 Encode for Universal Playback
+        if: steps.download.outputs.downloaded == 'true'
+        run: |
+          INPUT="${{ steps.download.outputs.file_path }}"
+          OUTPUT="${{ github.event.inputs.output_filename }}.mp4"
+          PRESET="${{ github.event.inputs.quality_preset }}"
+          
+          ffmpeg -i "$INPUT" \
+            -c:v libx264 \
+            -preset "$PRESET" \
+            -crf 23 \
+            -profile:v high \
+            -level 4.0 \
+            -pix_fmt yuv420p \
+            -movflags +faststart \
+            -c:a aac \
+            -b:a 128k \
+            -ar 44100 \
+            -ac 2 \
+            -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" \
+            -y "$OUTPUT"
+
+      - name: 🚀 Upload to GitHub Releases
+        if: success()
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: "movie-v${{ github.run_number }}"
-          files: movie.mp4
+          tag_name: "stream-v${{ github.run_number }}"
+          name: "Universal Stream Ready Video"
+          files: ${{ github.event.inputs.output_filename }}.mp4
+          body: |
+            ## 🎥 Universally Compatible Video Stream
+            **Direct Play Link:** `https://github.com/${{ github.repository }}/releases/download/stream-v${{ github.run_number }}/${{ github.event.inputs.output_filename }.mp4`
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
